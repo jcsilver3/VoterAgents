@@ -12,26 +12,20 @@ import GameKit
 
 class Simulation: ObservableObject {
     
-    //@Published var agentCount = 100
-    //@Published var agentCountScaled = 100.00
     @Published var agents: [Agent] = []
-    //@Published var steps = 1000.00
-    //@Published var maxAge = 100.00
     @Published var currentStep = 0
     @Published var isRunning: Bool = false
-    //@Published var speed = 10.00
     @Published var globals = Globals()
     @Published var graph = Graph()
     @Published var metrics = Metrics()
     
     let randomSource = GKRandomSource()
-    var logger = Logger()
+    @Published var logger = Logger()
     
     init() {
-        
-    }
-    init(agentCount: Int, stepCount: Int) async {
-        await reset(agentCount: agentCount, stepCount: Double(stepCount))
+        Task {
+            await reset()
+        }
     }
     func reset() async {
         await reset(agentCount: self.globals.default_agent_count, stepCount: Double(self.globals.default_step_count))
@@ -40,20 +34,27 @@ class Simulation: ObservableObject {
         isRunning = true
         agents = []
         currentStep = 0
-        //steps = stepCount
-        logger.clear()
         metrics.clear()
+        logger.log(message:"Reset.")
+        
         var tempAgents: [Agent] = []
-        Task {
-            //graph = generateBarabasiAlbert(nodeCount: agentCount, m0: 3)
-            //logger.log(message: "Graph has \(graph.nodes.count) nodes and \(graph.edges.count) edges. K-Min:\(graph.k_min()), K-Max:\(graph.k_max())")
-            logger.log(message:"Rest.")
+        let t = Task {
+           
+            graph = generateBarabasiAlbert(nodeCount: agentCount, m0: self.globals.default_graph_m0)
+            logger.log(message: "Graph has \(graph.nodes.count) nodes and \(graph.edges.count) edges. k_Min:\(graph.k_min()), k_Max:\(graph.k_max())")
+            self.objectWillChange.send()
         }
+        await _ = t.result	
+        let t2 = Task {
+            graph.kHat = graph.k_hat()
+            logger.log(message:"Graph has average degree of \(graph.kHat.rounded())")
+        }
+        await _ = t2.result
         /* make age distribution roughly normally distributed */
         let rngNorm = GKGaussianDistribution(randomSource: randomSource, lowestValue: 0, highestValue: Int(self.globals.default_max_age))
         Task {
             for _ in 1...self.globals.default_agent_count {
-                tempAgents.append(Agent(age: Double(rngNorm.nextInt()), maxAge: Double(Int(self.globals.default_max_age))))
+                tempAgents.append(Agent(globals: self.globals, age: Double(rngNorm.nextInt())))
             }
             agents = tempAgents
         }
@@ -63,7 +64,7 @@ class Simulation: ObservableObject {
         isRunning = true
         currentStep = 0
         for _ in 1...Int(self.globals.default_step_count){
-            currentStep += 1
+            currentStep += 1	
             self.logger.log(message:"Step \(currentStep)")
             if self.isRunning {
                 let t = Task {
@@ -73,9 +74,8 @@ class Simulation: ObservableObject {
                 _ = await t.result
                 
                 let waitTask = Task {
-                    let delay_ns = UInt64(0 + (2_500_000 * pow(Double(20 - self.globals.default_agent_speed),2.15)))
-                    if delay_ns > 0 {
-                        try await Task.sleep(nanoseconds: delay_ns)
+                    if self.globals.delayNs() > 0 {
+                        try await Task.sleep(nanoseconds: self.globals.delayNs() )
                     }
                 }
                 _ = await waitTask.result
@@ -86,7 +86,6 @@ class Simulation: ObservableObject {
                 return
             }
         }
-        //print("\(self.currentStep) done.")
         isRunning = false
     }
     
@@ -100,9 +99,9 @@ class Simulation: ObservableObject {
             }
         }
         _ = await t.result
-        //if currentStep % 3 == 0 {
+        if globals.default_metrics_enabled && (currentStep <= 1 || currentStep % self.globals.metricModulus() == 0 || currentStep == self.globals.default_step_count) {
             await recordMetrics()
-        //}
+        }
     }
     func stepGroups() async -> Void {
         let t = Task {

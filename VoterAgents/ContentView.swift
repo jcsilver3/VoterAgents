@@ -6,61 +6,41 @@
 //
 
 import SwiftUI
-import SwiftData
 
 struct ContentView: View {
-    @Environment(\.modelContext) private var modelContext
-    @Query private var items: [Item]
-
+    @StateObject var sim = Simulation()
+    @StateObject var globals = Globals()
+    
+    @State private var runTask: Task<Void, Never>? = nil
+    @State private var selectedView: String? = "Main"
     var body: some View {
+        
         NavigationSplitView {
-            List {
-                ForEach(items) { item in
-                    NavigationLink {
-                        Text("Item at \(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))")
-                    } label: {
-                        Text(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))
-                    }
-                }
-                .onDelete(perform: deleteItems)
+            List(selection: $selectedView) {
+                NavigationLink(value: "Main", label: {Text("Main")})
+                NavigationLink(value: "ViewPort", label: {Text("ViewPort")})
+                NavigationLink(value: "Metrics", label: {Text("Metrics")})
+                NavigationLink(value: "Log", label: {Text("Log")})
             }
-#if os(macOS)
-            .navigationSplitViewColumnWidth(min: 180, ideal: 200)
-#endif
-            .toolbar {
-#if os(iOS)
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    EditButton()
-                }
-#endif
-                ToolbarItem {
-                    Button(action: addItem) {
-                        Label("Add Item", systemImage: "plus")
-                    }
-                }
-            }
+            
         } detail: {
-            Text("Select an item")
-        }
-    }
-
-    private func addItem() {
-        withAnimation {
-            let newItem = Item(timestamp: Date())
-            modelContext.insert(newItem)
-        }
-    }
-
-    private func deleteItems(offsets: IndexSet) {
-        withAnimation {
-            for index in offsets {
-                modelContext.delete(items[index])
+            switch selectedView {
+            case "Main":
+                MainView(sim: sim)
+            case "ViewPort":
+                ViewPortView(sim: sim)
+            case "Metrics":
+                MetricsView(sim: sim)
+            case "Log":
+                LogView(sim: sim)
+            default:
+                MainView(sim: sim)
             }
         }
+    
     }
-}
+}	
 
 #Preview {
     ContentView()
-        .modelContainer(for: Item.self, inMemory: true)
 }

@@ -7,7 +7,7 @@
 
 import Foundation
 
-class Log {
+class Logger: ObservableObject {
     var logEntries: [LogEntry]
     
     init() {
@@ -16,9 +16,14 @@ class Log {
     func log(message: String) {
         logEntries.append(LogEntry(date: Date.now, message: message))
     }
+    func clear() {
+        logEntries.removeAll()
+        logEntries.append(LogEntry(message:"Log cleared."))
+    }
 }
 
-struct LogEntry {
-    var date: Date
+struct LogEntry: Identifiable {
+    var id = UUID()
+    var date: Date = Date.now
     var message: String
 }

@@ -6,3 +6,22 @@
 //
 
 import Foundation
+import SwiftUI
+
+struct MainView: View {
+    //@State private var isEditing = false
+    @ObservedObject var sim: Simulation
+    @State private var runTask: Task<Void, Never>? = nil
+    var body: some View {
+        ScrollView {
+            VStack {
+                SettingsPane(sim: sim)
+                SimControlView(sim: sim)
+                SimProgressView(sim: sim)
+                Spacer()
+                Spacer()
+                Spacer()
+            }.padding()
+        }
+    }
+}

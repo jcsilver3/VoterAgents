@@ -6,16 +6,28 @@
 //
 import Foundation
 import SwiftUI
-import SwiftData
 
-struct ViewPortView: View {
-    @State private var isEditing = false
+struct SimProgressView: View {
+    //@State private var isEditing = false
     @ObservedObject var sim: Simulation
-    @State private var runTask: Task<Void, Never>? = nil
+    //@State private var runTask: Task<Void, Never>? = nil
     var body: some View {
-        ScrollView(.horizontal) {
-            ScrollView {
-                CanvasView().frame(minWidth: 1000, maxWidth: 1000, minHeight:1000, maxHeight: 1000).padding().environmentObject(sim)
+        
+        let progress = Double(sim.currentStep)/Double(sim.globals.default_step_count)
+        let surviving: Int = sim.agents.filter({$0.age < sim.globals.default_max_age}).count
+        let survivingPct: Double = ( Double(surviving)/Double(sim.agents.count))
+        
+        VStack {
+            Text({if sim.isRunning{"Running"} else {"Stopped"}}())
+            HStack {
+                Text("Current Step: \(sim.currentStep)")
+                Text("Active Agents: \(sim.agents.filter({$0.isAlive}).count)")
+            }.padding()
+            ProgressView(value: progress) {
+                Text("Overall Progress")
+            }
+            ProgressView(value: survivingPct) {
+                Text("Surviving Agents")
             }
         }
     }
