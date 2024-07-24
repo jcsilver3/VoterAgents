@@ -60,7 +60,6 @@ class Graph {
     func k_hat() -> Double {
         var k_hat = 0.00
         for node in self.nodes {
-            print(node.k())
             k_hat += Double(node.k())
         }
         k_hat = k_hat / Double(self.nodes.count)
