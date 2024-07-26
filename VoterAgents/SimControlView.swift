@@ -13,6 +13,9 @@ struct SimControlView: View {
     @State private var runTask: Task<Void, Never>? = nil
     var body: some View {
         VStack {
+            SettingsView(sim: sim)
+            Spacer()
+            Spacer()
             HStack {
                 Button(action: {
                     Task {
@@ -36,21 +39,29 @@ struct SimControlView: View {
                 }, label: {
                     Text("Stop")
                 })
-                HStack {
-                    LabeledContent {
-                        Slider(value: $sim.globals.default_sim_speed, in:1...sim.globals.default_max_sim_speed)
-                        
-                    } label: {
-                        Text("Speed:") //\(Int(sim.globals.default_agent_speed))")
-                    }.frame(minWidth: 50, maxWidth: 250)//.padding()
-                }
-                
+                Button(action: {
+                    runTask?.cancel()
+                    Task {
+                        sim.intervene_AddLiars()
+                    }
+                }, label: {
+                    Text("Inject Liars")
+                })
+                Button(action: {
+                    runTask?.cancel()
+                    Task {
+                        sim.intervene_RemoveLiars()
+                    }
+                }, label: {
+                    Text("Remove Liars")
+                })
             }
-            HStack {
-                Toggle("Metrics", isOn: $sim.globals.default_metrics_enabled)
-                Toggle("ViewPort", isOn: $sim.globals.default_viewport_enabled)
-                Toggle("Logging", isOn: $sim.globals.default_logging_enabled)
-            }
+         
+            Spacer()
+            Spacer()
+
+            SimProgressView(sim: sim)
+
         }
     }
 }

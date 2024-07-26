@@ -18,16 +18,37 @@ class Agent: Identifiable, Hashable, Equatable {
     var isSelected = false
     var isAlive = true
     var globals: Globals = Globals()
-    let rng = GKRandomSource()
+    var bias: Double = 0.00
+    var bias_perceived: Double = 0.00
+    var graphID: Int
+    var neighborNodes: [Node]
+    var neighborAgents = [Agent]()
+    var eigenvalue: Double = 0.00
+    var isLiar: Bool = false
+    let randomSource = GKRandomSource()
     
-    init(globals: Globals, age: Double) {
+    init(globals: Globals, age: Double, bias: Double, graphID: Int, neighborNodes: [Node], eigenvalue: Double) {
+        self.bias = bias
         self.globals = globals
         self.age = Double.random(in: 0..<globals.default_max_age)
         self.speed = Int(globals.default_agent_speed)
         self.xpos = Int.random(in: 1..<globals.default_max_xpos)
         self.ypos = Int.random(in: 1..<globals.default_max_xpos)
         self.age = age
+        self.graphID = graphID
+        self.neighborNodes = neighborNodes
+        self.eigenvalue = eigenvalue
     }
+    /*
+     init(globals: Globals, age: Double) {
+     self.globals = globals
+     self.age = Double.random(in: 0..<globals.default_max_age)
+     self.speed = Int(globals.default_agent_speed)
+     self.xpos = Int.random(in: 1..<globals.default_max_xpos)
+     self.ypos = Int.random(in: 1..<globals.default_max_xpos)
+     self.age = age
+     }
+     */
     func getAge() -> Double {
         return self.age
     }
@@ -37,6 +58,35 @@ class Agent: Identifiable, Hashable, Equatable {
     
     func hash(into hasher: inout Hasher) {
         hasher.combine(self.id)
+    }
+    func perceive() {
+        let rng = GKRandomDistribution(randomSource: self.randomSource, lowestValue: 0, highestValue: 10000)
+        var observed_bias: Double = 0.0
+        var flutter: Double = 1 + (Double(rng.nextUniform()) * globals.default_flutter_lt)
+        flutter = (pow(10,2) * flutter).rounded() / pow(10,2)
+        
+        if rng.nextUniform() < 0.50 {
+            flutter *= -1
+        }
+        
+        observed_bias += self.bias
+        for neighbor in self.neighborAgents {
+            observed_bias += (neighbor.bias_perceived * flutter)
+        }
+        observed_bias /= (Double(self.neighborAgents.count) + 1.00)
+        observed_bias = (pow(10,2) * observed_bias).rounded() / pow(10,2)
+        //print(self.eigenvalue)
+        if self.isLiar && eigenvalue >= globals.default_liar_gt_eigenvalue {
+            //print("lying now.")
+            if self.bias < 0 {
+                observed_bias = -1
+            } else {
+                observed_bias = 1
+            }
+            
+           
+        }
+        self.bias_perceived = observed_bias
     }
     func ageColor() -> Color {
         if !isAlive {
@@ -58,6 +108,9 @@ class Agent: Identifiable, Hashable, Equatable {
             if age >= self.globals.default_max_age {
                 die()
             } else {
+                
+                perceive()
+                
                 age+=1
                 xpos += Int.random(in: -speed..<speed+1)
                 ypos += Int.random(in: -speed..<speed+1)
@@ -77,5 +130,18 @@ class Agent: Identifiable, Hashable, Equatable {
     }
     func die() {
         isAlive = false
+    }
+    func toString() -> String {
+        var outstr: String = ""
+        outstr += "id: \(self.id)\n"
+        outstr += "graphId: \(self.graphID)\n"
+        outstr += "k: \(self.neighborNodes.count)\n"
+        outstr += "bias: \(self.bias)\n"
+        outstr += "neighbors: "
+        for neighbor in self.neighborNodes {
+            outstr += "\(neighbor.id) "
+            
+        }
+        return outstr
     }
 }

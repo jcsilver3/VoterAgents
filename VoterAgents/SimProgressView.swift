@@ -8,9 +8,7 @@ import Foundation
 import SwiftUI
 
 struct SimProgressView: View {
-    //@State private var isEditing = false
     @ObservedObject var sim: Simulation
-    //@State private var runTask: Task<Void, Never>? = nil
     var body: some View {
         
         let progress = Double(sim.currentStep)/Double(sim.globals.default_step_count)

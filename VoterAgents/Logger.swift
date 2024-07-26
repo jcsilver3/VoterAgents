@@ -15,6 +15,7 @@ class Logger: ObservableObject {
     }
     func log(message: String) {
         logEntries.append(LogEntry(date: Date.now, message: message))
+        self.objectWillChange.send()
     }
     func clear() {
         logEntries.removeAll()

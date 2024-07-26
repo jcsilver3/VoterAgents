@@ -13,15 +13,16 @@ struct MainView: View {
     @ObservedObject var sim: Simulation
     @State private var runTask: Task<Void, Never>? = nil
     var body: some View {
-        ScrollView {
-            VStack {
-                SettingsPane(sim: sim)
-                SimControlView(sim: sim)
-                SimProgressView(sim: sim)
-                Spacer()
-                Spacer()
-                Spacer()
-            }.padding()
+        VStack {
+            SimControlView(sim: sim)
+            Spacer()
+            Spacer()
+            Spacer()
+            if sim.globals.default_viewport_enabled {
+                ViewPortView(sim: sim).padding()
+            } else {
+                Text("ViewPort disabled.")
+            }
         }
     }
 }

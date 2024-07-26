@@ -18,7 +18,7 @@ class Simulation: ObservableObject {
     @Published var globals = Globals()
     @Published var graph = Graph()
     @Published var metrics = Metrics()
-    
+ 
     let randomSource = GKRandomSource()
     @Published var logger = Logger()
     
@@ -37,51 +37,94 @@ class Simulation: ObservableObject {
         metrics.clear()
         logger.log(message:"Reset.")
         
-        var tempAgents: [Agent] = []
-        let t = Task {
-           
-            graph = generateBarabasiAlbert(nodeCount: agentCount, m0: self.globals.default_graph_m0)
-            logger.log(message: "Graph has \(graph.nodes.count) nodes and \(graph.edges.count) edges. k_Min:\(graph.k_min()), k_Max:\(graph.k_max())")
-            self.objectWillChange.send()
-        }
-        await _ = t.result	
-        let t2 = Task {
-            graph.kHat = graph.k_hat()
-            logger.log(message:"Graph has average degree of \(graph.kHat.rounded())")
-        }
-        await _ = t2.result
-        /* make age distribution roughly normally distributed */
+        //var tempAgents: [Agent] = []
+        
+        /* Generate Graph */
+        graph = generateBarabasiAlbert(nodeCount: agentCount, m0: self.globals.default_graph_m0)
+        
+        /* Calculate Eigenvector Centrality */
+        updateEigenValues(G: graph, metrics: metrics, logger: logger)
+        
+        logger.log(message: "Graph has \(graph.nodes.count) nodes and \(graph.edges.count) edges. k_Min:\(graph.k_min()), k_Max:\(graph.k_max())")
+        
+        graph.kHat = graph.k_hat()
+        logger.log(message:"Graph has average degree of \(graph.kHat.rounded())")
+
+        /* make age & bias distributions roughly normally distributed */
         let rngNorm = GKGaussianDistribution(randomSource: randomSource, lowestValue: 0, highestValue: Int(self.globals.default_max_age))
-        Task {
-            for _ in 1...self.globals.default_agent_count {
-                tempAgents.append(Agent(globals: self.globals, age: Double(rngNorm.nextInt())))
-            }
-            agents = tempAgents
+        let biasNorm = GKGaussianDistribution(randomSource: randomSource, lowestValue: -100, highestValue: 100)
+        
+        /* Map agents to Graph */
+        for i in 0..<graph.nodes.count {
+            var bias: Double = Double(biasNorm.nextUniform())
+            bias = (pow(10,2) * bias).rounded() / pow(10,2)
+            agents.append(Agent(globals: self.globals, age: Double(rngNorm.nextInt()), bias: bias, graphID: graph.nodes[i].id, neighborNodes: graph.nodes[i].neighbors, eigenvalue: graph.nodes[i].lambda))
         }
+        //agents = tempAgents
+        
+        for agent in agents {
+            for neighbor in agent.neighborNodes {
+                let neighboragent = self.agents.first(where: {$0.graphID == neighbor.id})
+                agent.neighborAgents.append(neighboragent!)
+            }
+        }
+               //_ = await t3.result
+        /*
+        for agent in agents {
+            
+            print("\(agent.graphID) eigenvalue: \(agent.eigenvalue)")
+
+        }
+        */
         isRunning = false
+    }
+    func intervene_AddLiars() {
+        let liarCount = self.agents.filter({$0.isLiar}).count
+        if (liarCount < globals.default_liar_count) {
+            for i in 1...globals.default_liar_count-liarCount {
+                var target_liar = self.agents.filter({$0.eigenvalue > globals.default_liar_gt_eigenvalue && !$0.isLiar}).randomElement()
+                target_liar?.isLiar = true
+            }
+        }
+    }
+    func intervene_RemoveLiars() {
+        for agent in self.agents.filter({$0.isLiar}) {
+            agent.isLiar = false
+        }
     }
     func run() async -> Void {
         isRunning = true
         currentStep = 0
         for _ in 1...Int(self.globals.default_step_count){
-            currentStep += 1	
-            self.logger.log(message:"Step \(currentStep)")
+            currentStep += 1
+            Task {
+                self.logger.log(message:"Step \(currentStep)")
+            }
             if self.isRunning {
                 let t = Task {
                     await step()
-                    self.objectWillChange.send()
                 }
                 _ = await t.result
                 
                 let waitTask = Task {
                     if self.globals.delayNs() > 0 {
+                        //print("Waiting...")
                         try await Task.sleep(nanoseconds: self.globals.delayNs() )
                     }
                 }
                 _ = await waitTask.result
+                
+                if globals.default_metrics_enabled && (currentStep <= 1 || currentStep % self.globals.metricModulus() == 0 || currentStep == self.globals.default_step_count) {
+                    let t2 = Task {
+                        recordMetrics()
+                    }
+                    _ = await t2.result
+                }
+                
                 if agents.filter({$0.isAlive}).count == 0 {
                     self.stop()
                 }
+                
             } else {
                 return
             }
@@ -92,17 +135,17 @@ class Simulation: ObservableObject {
     func step() async -> Void {
         let t = Task {
             for a in self.agents {
-                Task {
+                let ta = Task {
                     try Task.checkCancellation()
                     await a.step()
                 }
+                _ = await ta.result
             }
         }
         _ = await t.result
-        if globals.default_metrics_enabled && (currentStep <= 1 || currentStep % self.globals.metricModulus() == 0 || currentStep == self.globals.default_step_count) {
-            await recordMetrics()
-        }
+        
     }
+    /*
     func stepGroups() async -> Void {
         let t = Task {
             await withTaskGroup(of: Void.self) { group in
@@ -119,12 +162,22 @@ class Simulation: ObservableObject {
             }
         }
         _ = await t.result
+        if globals.default_metrics_enabled && (currentStep <= 1 || currentStep % self.globals.metricModulus() == 0 || currentStep == self.globals.default_step_count) {
+            let t2 = Task {
+                recordMetrics()
+            }
+            _ = await t2.result
+        }
     }
-    func recordMetrics() async -> Void {
-        let _ = Task {
-            metrics.agentsAlive.append(observation_int(step: currentStep, value: agents.filter({$0.age < self.globals.default_max_age}).count))
-            metrics.agentsDead.append(observation_int(step: currentStep, value: agents.filter({$0.age >= self.globals.default_max_age}).count))
-            metrics.agentsAvgAge.append(observation_int(step: currentStep, value: {
+    */
+    func recordMetrics() {
+        //let t = Task {
+            metrics.agentsBias.removeAll()
+            metrics.agentsBiasPerceived.removeAll()
+            
+            metrics.agentsAlive.append(observation_int(key: currentStep, value: agents.filter({$0.age < self.globals.default_max_age}).count))
+            metrics.agentsDead.append(observation_int(key: currentStep, value: agents.filter({$0.age >= self.globals.default_max_age}).count))
+            metrics.agentsAvgAge.append(observation_int(key: currentStep, value: {
                 var x: Double = 0
                 var n: Double = Double(self.agents.filter({$0.age < self.globals.default_max_age}).count)
                
@@ -137,7 +190,31 @@ class Simulation: ObservableObject {
                 }
                 return Int(x/n)
             }()))
-        }
+            
+            var biasDict: Dictionary<Double, Double> = Dictionary()
+            for agent in self.agents {
+                let keyval = agent.bias
+                let key = keyval
+                let newValue = (biasDict[keyval] ?? 0) + 1
+                biasDict.updateValue(newValue, forKey: key)
+            }
+            for dictEntry in biasDict {
+                metrics.agentsBias.append(observation_double(key: dictEntry.key, value: dictEntry.value))
+            }
+            
+            var biasPerceivedDict: Dictionary<Double, Double> = Dictionary()
+            for agent in self.agents {
+                let keyval = agent.bias_perceived
+                let key = keyval
+                let newValue = (biasPerceivedDict[keyval] ?? 0) + 1
+                biasPerceivedDict.updateValue(newValue, forKey: key)
+            }
+            for dictEntry in biasPerceivedDict {
+                metrics.agentsBiasPerceived.append(observation_double(key: dictEntry.key, value: dictEntry.value))
+            }
+        //}
+        //_ = await t.result
+       
     }
     func stop() {
         self.isRunning = false

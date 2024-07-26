@@ -15,7 +15,7 @@
 		0B0BF2812C5034B20008D33D /* Simulation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B0BF2802C5034B20008D33D /* Simulation.swift */; };
 		0B0BF2832C5036CB0008D33D /* Agent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B0BF2822C5036CB0008D33D /* Agent.swift */; };
 		0B0BF2852C5036F30008D33D /* Canvas.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B0BF2842C5036F30008D33D /* Canvas.swift */; };
-		0B0BF2872C50371B0008D33D /* SettingsPane.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B0BF2862C50371B0008D33D /* SettingsPane.swift */; };
+		0B0BF2872C50371B0008D33D /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B0BF2862C50371B0008D33D /* SettingsView.swift */; };
 		0B0BF2892C5050A10008D33D /* Utility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B0BF2882C5050A10008D33D /* Utility.swift */; };
 		0B0BF28B2C50524B0008D33D /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B0BF28A2C50524B0008D33D /* MainView.swift */; };
 		0B0BF28D2C5054D80008D33D /* ViewPortView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B0BF28C2C5054D80008D33D /* ViewPortView.swift */; };
@@ -26,6 +26,7 @@
 		0B0BF2972C507A250008D33D /* MetricsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B0BF2962C507A250008D33D /* MetricsView.swift */; };
 		0B0BF2992C507E110008D33D /* SimControlView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B0BF2982C507E110008D33D /* SimControlView.swift */; };
 		0B0BF29B2C50C61A0008D33D /* Globals.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B0BF29A2C50C61A0008D33D /* Globals.swift */; };
+		0B0BF2BE2C535ABE0008D33D /* Eigenvector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B0BF2BD2C535ABE0008D33D /* Eigenvector.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -39,7 +40,7 @@
 		0B0BF2802C5034B20008D33D /* Simulation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Simulation.swift; sourceTree = "<group>"; };
 		0B0BF2822C5036CB0008D33D /* Agent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Agent.swift; sourceTree = "<group>"; };
 		0B0BF2842C5036F30008D33D /* Canvas.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Canvas.swift; sourceTree = "<group>"; };
-		0B0BF2862C50371B0008D33D /* SettingsPane.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsPane.swift; sourceTree = "<group>"; };
+		0B0BF2862C50371B0008D33D /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		0B0BF2882C5050A10008D33D /* Utility.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utility.swift; sourceTree = "<group>"; };
 		0B0BF28A2C50524B0008D33D /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
 		0B0BF28C2C5054D80008D33D /* ViewPortView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewPortView.swift; sourceTree = "<group>"; };
@@ -50,6 +51,7 @@
 		0B0BF2962C507A250008D33D /* MetricsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricsView.swift; sourceTree = "<group>"; };
 		0B0BF2982C507E110008D33D /* SimControlView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimControlView.swift; sourceTree = "<group>"; };
 		0B0BF29A2C50C61A0008D33D /* Globals.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Globals.swift; sourceTree = "<group>"; };
+		0B0BF2BD2C535ABE0008D33D /* Eigenvector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Eigenvector.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -82,23 +84,24 @@
 		0B0BF26C2C5030550008D33D /* VoterAgents */ = {
 			isa = PBXGroup;
 			children = (
-				0B0BF29A2C50C61A0008D33D /* Globals.swift */,
-				0B0BF26D2C5030550008D33D /* VoterAgentsApp.swift */,
 				0B0BF26F2C5030550008D33D /* ContentView.swift */,
 				0B0BF28A2C50524B0008D33D /* MainView.swift */,
+				0B0BF2862C50371B0008D33D /* SettingsView.swift */,
 				0B0BF2982C507E110008D33D /* SimControlView.swift */,
 				0B0BF28E2C5057FE0008D33D /* SimProgressView.swift */,
 				0B0BF28C2C5054D80008D33D /* ViewPortView.swift */,
 				0B0BF2962C507A250008D33D /* MetricsView.swift */,
-				0B0BF2862C50371B0008D33D /* SettingsPane.swift */,
+				0B0BF2922C505E600008D33D /* LogView.swift */,
+				0B0BF29A2C50C61A0008D33D /* Globals.swift */,
 				0B0BF2802C5034B20008D33D /* Simulation.swift */,
 				0B0BF27E2C50347A0008D33D /* Graph.swift */,
+				0B0BF2BD2C535ABE0008D33D /* Eigenvector.swift */,
 				0B0BF2822C5036CB0008D33D /* Agent.swift */,
 				0B0BF2842C5036F30008D33D /* Canvas.swift */,
 				0B0BF2882C5050A10008D33D /* Utility.swift */,
 				0B0BF2902C505B3F0008D33D /* Logger.swift */,
-				0B0BF2922C505E600008D33D /* LogView.swift */,
 				0B0BF2942C5079080008D33D /* Metrics.swift */,
+				0B0BF26D2C5030550008D33D /* VoterAgentsApp.swift */,
 				0B0BF2732C5030580008D33D /* Assets.xcassets */,
 				0B0BF2752C5030580008D33D /* VoterAgents.entitlements */,
 				0B0BF2762C5030580008D33D /* Preview Content */,
@@ -197,7 +200,8 @@
 				0B0BF2932C505E600008D33D /* LogView.swift in Sources */,
 				0B0BF28D2C5054D80008D33D /* ViewPortView.swift in Sources */,
 				0B0BF2832C5036CB0008D33D /* Agent.swift in Sources */,
-				0B0BF2872C50371B0008D33D /* SettingsPane.swift in Sources */,
+				0B0BF2BE2C535ABE0008D33D /* Eigenvector.swift in Sources */,
+				0B0BF2872C50371B0008D33D /* SettingsView.swift in Sources */,
 				0B0BF2952C5079080008D33D /* Metrics.swift in Sources */,
 				0B0BF26E2C5030550008D33D /* VoterAgentsApp.swift in Sources */,
 				0B0BF28F2C5057FE0008D33D /* SimProgressView.swift in Sources */,

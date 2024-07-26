@@ -7,12 +7,12 @@
 
 import Foundation
 
-class Graph {
+class Graph: ObservableObject {
     var nodes: [Node] = [Node]()
     var edges: [[Node]] = [[Node]]()
     var edgeNodes: [Node] = [Node]()
-    var kHat: Double = 0
-    
+    var kHat: Double = 0.0
+    var lambda_max: Double = 0.0
     func k_dist() -> Dictionary<Int, Int>{
         var k_dist: Dictionary<Int, Int> = Dictionary()
         for node in self.nodes {
@@ -22,15 +22,38 @@ class Graph {
         }
        return k_dist
     }
+    func l_dist() -> Dictionary<Double, Int>{
+        var l_dist: Dictionary<Double, Int> = Dictionary()
+        for node in self.nodes {
+            let key = node.lambda
+            let newValue = (l_dist[node.lambda] ?? 0) + 1
+            l_dist.updateValue(newValue, forKey: key)
+        }
+       return l_dist
+    }
     struct Data:Identifiable {
         let id = UUID()
         let key: Int
+        let value: Int
+    }
+    
+    struct Data_key_dbl:Identifiable {
+        let id = UUID()
+        let key: Double
         let value: Int
     }
     func k_dist_data() -> [Data] {
         var output = [Data]()
         for (k,v) in k_dist() {
             let data = Data(key: k, value: v)
+            output.append(data)
+        }
+        return output
+    }
+    func l_dist_data() -> [Data_key_dbl] {
+        var output = [Data_key_dbl]()
+        for (k,v) in l_dist() {
+            let data = Data_key_dbl(key: k, value: v)
             output.append(data)
         }
         return output
@@ -82,7 +105,7 @@ class Node: Identifiable, Equatable {
     
     var id: Int
     var neighbors = [Node]()
-    var cc: Double = 0
+    var lambda: Double = 0.0
     
     init(id: Int = 0) {
         self.id = id

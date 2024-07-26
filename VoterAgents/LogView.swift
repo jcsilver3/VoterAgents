@@ -11,27 +11,25 @@ import SwiftUI
 struct LogView: View {
     @ObservedObject var sim: Simulation
     var body: some View {
-        //ScrollView {
+        if sim.globals.default_logging_enabled {
             VStack {
-                if sim.globals.default_logging_enabled {
-                    SimControlView(sim: sim).padding()
-                    SimProgressView(sim: sim).padding()
-                    Text("Log:")
-                    Button("Clear log", action: {
-                        sim.logger.clear()
-                        sim.objectWillChange.send()
-                    })
-                    
-                    List(sim.logger.logEntries.reversed()) { logEntry in //.reversed(), id: \.id) { logEntry in
-                        //HStack {
-                        //Text("Hello World.")
-                        Text(logEntry.date.formatted(.iso8601) + ": " + logEntry.message)
-                        //}
-                    }
-                } else {
-                    Text("Logging disabled.")
+                SimControlView(sim: sim)
+                Spacer()
+                Text("Log:")
+                
+                Button("Clear log", action: {
+                    sim.logger.clear()
+                    sim.objectWillChange.send()
+                })
+                
+                List(sim.logger.logEntries, id: \.id) { logEntry in
+
+                    Text("Log entry")
                 }
-           }
-       // }.frame(minHeight: 100)
+
+            }
+        } else {
+            Text("Logging disabled.")
+        }
     }
 }
