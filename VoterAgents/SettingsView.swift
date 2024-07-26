@@ -77,17 +77,18 @@ struct SettingsView: View {
                         .multilineTextAlignment(.trailing)
                     
                 } label: {
-                    Text("Num Eigenvalue >= x").frame(alignment: .leading)
+                    Text("Liar Eigenvalue >= x").frame(alignment: .leading)
                 }.frame(minWidth: 50)
             }
+            
             HStack {    LabeledContent {
-                TextField("Lying frequency >= p (0.00)", value: $sim.globals.default_liar_gt_frequency, format:.number)
+                TextField("Bias to (+/- 0.00)", value: $sim.globals.default_liar_bias_to, format:.number)
                     .textFieldStyle(.roundedBorder)
                     .frame(maxWidth: 100)
                     .multilineTextAlignment(.trailing)
                 
             } label: {
-                Text("Lying frequency >= p (0.00):").frame(alignment: .leading)
+                Text("Bias to (+/- 0.00)").frame(alignment: .leading)
             }.frame(minWidth: 50)
             }
             HStack {

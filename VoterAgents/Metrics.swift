@@ -14,6 +14,7 @@ class Metrics: ObservableObject {
     var agentsBias: [observation_double]
     var agentsBiasPerceived: [observation_double]
     var agentsEigenDist: [observation_keydouble]
+    var agentsBiasError: [observation_double]
     var err: [observation_double]
     init() {
         self.agentsAlive = [observation_int]()
@@ -22,6 +23,7 @@ class Metrics: ObservableObject {
         self.agentsBias = [observation_double]()
         self.agentsBiasPerceived = [observation_double]()
         self.agentsEigenDist = [observation_keydouble]()
+        self.agentsBiasError = [observation_double]()
         self.err = [observation_double]()
     }
     func clear() {
@@ -31,6 +33,7 @@ class Metrics: ObservableObject {
         self.agentsBias.removeAll()
         self.agentsBiasPerceived.removeAll()
         self.agentsEigenDist.removeAll()
+        self.agentsBiasError.removeAll()
         self.err .removeAll()
     }
 }

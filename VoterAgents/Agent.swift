@@ -39,16 +39,7 @@ class Agent: Identifiable, Hashable, Equatable {
         self.neighborNodes = neighborNodes
         self.eigenvalue = eigenvalue
     }
-    /*
-     init(globals: Globals, age: Double) {
-     self.globals = globals
-     self.age = Double.random(in: 0..<globals.default_max_age)
-     self.speed = Int(globals.default_agent_speed)
-     self.xpos = Int.random(in: 1..<globals.default_max_xpos)
-     self.ypos = Int.random(in: 1..<globals.default_max_xpos)
-     self.age = age
-     }
-     */
+
     func getAge() -> Double {
         return self.age
     }
@@ -62,30 +53,37 @@ class Agent: Identifiable, Hashable, Equatable {
     func perceive() {
         let rng = GKRandomDistribution(randomSource: self.randomSource, lowestValue: 0, highestValue: 10000)
         var observed_bias: Double = 0.0
-        var flutter: Double = 1 + (Double(rng.nextUniform()) * globals.default_flutter_lt)
+        let ignoreNeighbors = false
+        var flutter: Double = (Double(rng.nextUniform()) * globals.default_flutter_lt)
         flutter = (pow(10,2) * flutter).rounded() / pow(10,2)
-        
+        /* flip sign evenly */
         if rng.nextUniform() < 0.50 {
             flutter *= -1
         }
+
+        observed_bias = self.bias
+
+        /* scale neighbor influence by normalized eigenvalue relative to node */
+        var lambda_tot: Double = 0.0
         
-        observed_bias += self.bias
         for neighbor in self.neighborAgents {
-            observed_bias += (neighbor.bias_perceived * flutter)
+            lambda_tot += neighbor.eigenvalue
         }
-        observed_bias /= (Double(self.neighborAgents.count) + 1.00)
-        observed_bias = (pow(10,2) * observed_bias).rounded() / pow(10,2)
-        //print(self.eigenvalue)
-        if self.isLiar && eigenvalue >= globals.default_liar_gt_eigenvalue {
+        
+        for neighbor in self.neighborAgents {
+            let lambda_relative = neighbor.eigenvalue / lambda_tot
+            observed_bias += (neighbor.bias_perceived * lambda_relative)
+        }
+        
+        observed_bias /= 2 // equally weigh internal vs. external bias.
+        
+        /* if liar, bias to configured value */
+        if self.isLiar && eigenvalue >= globals.default_liar_gt_eigenvalue && self.neighborNodes.count >= Int(globals.default_liar_gt_k) {
             //print("lying now.")
-            if self.bias < 0 {
-                observed_bias = -1
-            } else {
-                observed_bias = 1
-            }
-            
-           
+            observed_bias = globals.default_liar_bias_to
         }
+        /* round to same precision as start */
+        observed_bias = (pow(10,2) * (observed_bias + flutter)).rounded() / pow(10,2)
         self.bias_perceived = observed_bias
     }
     func ageColor() -> Color {

@@ -81,9 +81,14 @@ class Simulation: ObservableObject {
     func intervene_AddLiars() {
         let liarCount = self.agents.filter({$0.isLiar}).count
         if (liarCount < globals.default_liar_count) {
-            for i in 1...globals.default_liar_count-liarCount {
-                var target_liar = self.agents.filter({$0.eigenvalue > globals.default_liar_gt_eigenvalue && !$0.isLiar}).randomElement()
-                target_liar?.isLiar = true
+            for _ in 1...globals.default_liar_count-liarCount {
+                let target_liar = self.agents.filter({$0.eigenvalue > globals.default_liar_gt_eigenvalue !$0.isLiar}).randomElement()
+                if target_liar != nil {
+                    target_liar!.isLiar = true
+                    print(target_liar!.neighborNodes.count)
+                    print(target_liar!.neighborAgents.count)
+                }
+               
             }
         }
     }
@@ -116,7 +121,7 @@ class Simulation: ObservableObject {
                 
                 if globals.default_metrics_enabled && (currentStep <= 1 || currentStep % self.globals.metricModulus() == 0 || currentStep == self.globals.default_step_count) {
                     let t2 = Task {
-                        recordMetrics()
+                        await recordMetrics()
                     }
                     _ = await t2.result
                 }
@@ -170,51 +175,83 @@ class Simulation: ObservableObject {
         }
     }
     */
-    func recordMetrics() {
-        //let t = Task {
-            metrics.agentsBias.removeAll()
-            metrics.agentsBiasPerceived.removeAll()
-            
-            metrics.agentsAlive.append(observation_int(key: currentStep, value: agents.filter({$0.age < self.globals.default_max_age}).count))
-            metrics.agentsDead.append(observation_int(key: currentStep, value: agents.filter({$0.age >= self.globals.default_max_age}).count))
-            metrics.agentsAvgAge.append(observation_int(key: currentStep, value: {
-                var x: Double = 0
-                var n: Double = Double(self.agents.filter({$0.age < self.globals.default_max_age}).count)
-               
-                if n > 0 {
-                    for agent in self.agents.filter({$0.age < self.globals.default_max_age}) {
-                        x+=agent.age
+    func recordMetrics() async {
+        
+        let t = Task {
+            Task {
+                try Task.checkCancellation()
+                metrics.agentsBias.removeAll()
+                metrics.agentsBiasPerceived.removeAll()
+            }
+            Task {
+                try Task.checkCancellation()
+                metrics.agentsAlive.append(observation_int(key: currentStep, value: agents.filter({$0.age < self.globals.default_max_age}).count))
+            }
+            Task {
+                try Task.checkCancellation()
+                metrics.agentsDead.append(observation_int(key: currentStep, value: agents.filter({$0.age >= self.globals.default_max_age}).count))
+            }
+            Task {
+                try Task.checkCancellation()
+                metrics.agentsAvgAge.append(observation_int(key: currentStep, value: {
+                    var x: Double = 0
+                    var n: Double = Double(self.agents.filter({$0.age < self.globals.default_max_age}).count)
+                    
+                    if n > 0 {
+                        for agent in self.agents.filter({$0.age < self.globals.default_max_age}) {
+                            x+=agent.age
+                        }
+                    } else {
+                        n = 1
                     }
-                } else {
-                    n = 1
+                    return Int(x/n)
+                }()))
+            }
+            
+            Task {
+                try Task.checkCancellation()
+                var biasDict: Dictionary<Double, Double> = Dictionary()
+                for agent in self.agents {
+                    let keyval = agent.bias
+                    let key = keyval
+                    let newValue = (biasDict[keyval] ?? 0) + 1
+                    biasDict.updateValue(newValue, forKey: key)
                 }
-                return Int(x/n)
-            }()))
-            
-            var biasDict: Dictionary<Double, Double> = Dictionary()
-            for agent in self.agents {
-                let keyval = agent.bias
-                let key = keyval
-                let newValue = (biasDict[keyval] ?? 0) + 1
-                biasDict.updateValue(newValue, forKey: key)
+                for dictEntry in biasDict {
+                    metrics.agentsBias.append(observation_double(key: dictEntry.key, value: dictEntry.value))
+                }
             }
-            for dictEntry in biasDict {
-                metrics.agentsBias.append(observation_double(key: dictEntry.key, value: dictEntry.value))
+            Task {
+                try Task.checkCancellation()
+                
+                var biasPerceivedDict: Dictionary<Double, Double> = Dictionary()
+                for agent in self.agents {
+                    let keyval = agent.bias_perceived
+                    let key = keyval
+                    let newValue = (biasPerceivedDict[keyval] ?? 0) + 1
+                    biasPerceivedDict.updateValue(newValue, forKey: key)
+                }
+                for dictEntry in biasPerceivedDict {
+                    metrics.agentsBiasPerceived.append(observation_double(key: dictEntry.key, value: dictEntry.value))
+                }
             }
-            
-            var biasPerceivedDict: Dictionary<Double, Double> = Dictionary()
-            for agent in self.agents {
-                let keyval = agent.bias_perceived
-                let key = keyval
-                let newValue = (biasPerceivedDict[keyval] ?? 0) + 1
-                biasPerceivedDict.updateValue(newValue, forKey: key)
+            Task {
+                try Task.checkCancellation()
+                var bias_total: Double = 0.0
+                var bias_perceived_total: Double = 0.0
+                var bias_err_sos: Double = 0.0
+                for agent in self.agents {
+                    bias_total += agent.bias
+                    bias_perceived_total += agent.bias_perceived
+                    bias_err_sos += pow((agent.bias_perceived - bias_total),2)
+                }
+                bias_err_sos = sqrt(bias_err_sos)
+                metrics.agentsBiasError.append(observation_double(key: Double(currentStep), value: bias_err_sos))
             }
-            for dictEntry in biasPerceivedDict {
-                metrics.agentsBiasPerceived.append(observation_double(key: dictEntry.key, value: dictEntry.value))
-            }
-        //}
-        //_ = await t.result
-       
+        }
+        
+        _ = await t.result
+        
     }
     func stop() {
         self.isRunning = false
