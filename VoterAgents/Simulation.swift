@@ -60,33 +60,22 @@ class Simulation: ObservableObject {
             bias = (pow(10,2) * bias).rounded() / pow(10,2)
             agents.append(Agent(globals: self.globals, age: Double(rngNorm.nextInt()), bias: bias, graphID: graph.nodes[i].id, neighborNodes: graph.nodes[i].neighbors, eigenvalue: graph.nodes[i].lambda))
         }
-        //agents = tempAgents
-        
+
         for agent in agents {
             for neighbor in agent.neighborNodes {
                 let neighboragent = self.agents.first(where: {$0.graphID == neighbor.id})
                 agent.neighborAgents.append(neighboragent!)
             }
         }
-               //_ = await t3.result
-        /*
-        for agent in agents {
-            
-            print("\(agent.graphID) eigenvalue: \(agent.eigenvalue)")
-
-        }
-        */
         isRunning = false
     }
     func intervene_AddLiars() {
         let liarCount = self.agents.filter({$0.isLiar}).count
         if (liarCount < globals.default_liar_count) {
             for _ in 1...globals.default_liar_count-liarCount {
-                let target_liar = self.agents.filter({$0.eigenvalue > globals.default_liar_gt_eigenvalue !$0.isLiar}).randomElement()
+                let target_liar = self.agents.filter({$0.eigenvalue > globals.default_liar_gt_eigenvalue && !$0.isLiar}).randomElement()
                 if target_liar != nil {
                     target_liar!.isLiar = true
-                    print(target_liar!.neighborNodes.count)
-                    print(target_liar!.neighborAgents.count)
                 }
                
             }
@@ -113,7 +102,6 @@ class Simulation: ObservableObject {
                 
                 let waitTask = Task {
                     if self.globals.delayNs() > 0 {
-                        //print("Waiting...")
                         try await Task.sleep(nanoseconds: self.globals.delayNs() )
                     }
                 }
@@ -150,31 +138,6 @@ class Simulation: ObservableObject {
         _ = await t.result
         
     }
-    /*
-    func stepGroups() async -> Void {
-        let t = Task {
-            await withTaskGroup(of: Void.self) { group in
-                for a in self.agents {
-                    if isRunning {
-                        group.addTask {
-                            Task {
-                                try Task.checkCancellation()
-                                await a.step()
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        _ = await t.result
-        if globals.default_metrics_enabled && (currentStep <= 1 || currentStep % self.globals.metricModulus() == 0 || currentStep == self.globals.default_step_count) {
-            let t2 = Task {
-                recordMetrics()
-            }
-            _ = await t2.result
-        }
-    }
-    */
     func recordMetrics() async {
         
         let t = Task {
@@ -257,32 +220,3 @@ class Simulation: ObservableObject {
         self.isRunning = false
     }
 }
-/*
-func run() {
-    let printEdges = 0
-    let printNodes = 0
-    let printKdist = 1
-    var logger = Logger()
-    let g: Graph = generateBarabasiAlbert(nodeCount: 100000, m0: 3)
-    logger.log("Graph has \(g.nodes.count) nodes and \(g.edges.count) edges. K-Min:\(g.k_min()), K-Max:\(g.k_max())")
-    
-    if printKdist == 1 {
-        for k in g.k_dist() {
-            logger.log(message:"\(k.key), \(k.value)")
-        }
-    }
-    if printEdges == 1 {
-        print("i, j")
-        for edge in g.edges {
-            logger.log(message:"\(edge[0].id),\(edge[1].id)")
-        }
-    }
-    if printNodes == 1 {
-        print("id, k")
-        for node in g.nodes {
-            logger.log(message:"\(node.id), \(node.degree())")
-        }
-        
-    }
-}
-*/

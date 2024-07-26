@@ -111,25 +111,12 @@ struct SettingsView: View {
                         Slider(value: $sim.globals.default_sim_speed, in:1...sim.globals.default_max_sim_speed)
                         
                     } label: {
-                        Text("Speed:") //\(Int(sim.globals.default_agent_speed))")
-                    }.frame(minWidth: 50, maxWidth: 250)//.padding()
+                        Text("Speed:")
+                    }.frame(minWidth: 50, maxWidth: 250)
                 }
                 Spacer()
                 Spacer()
-                HStack {
-                    Toggle("Metrics", isOn: $sim.globals.default_metrics_enabled)
-                        .onChange(of: sim.globals.default_metrics_enabled) {
-                            sim.objectWillChange.send()
-                        }
-                    Toggle("ViewPort", isOn: $sim.globals.default_viewport_enabled)
-                        .onChange(of: sim.globals.default_viewport_enabled) {
-                            sim.objectWillChange.send()
-                        }
-                    Toggle("Logging", isOn: $sim.globals.default_logging_enabled)
-                        .onChange(of: sim.globals.default_logging_enabled) {
-                            sim.objectWillChange.send()
-                        }
-                }
+                
             }
         }
     }

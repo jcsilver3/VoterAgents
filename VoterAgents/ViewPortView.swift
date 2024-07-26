@@ -13,7 +13,6 @@ struct ViewPortView: View {
     var body: some View {
         ScrollView(.horizontal) {
             ScrollView {
-                //CanvasView().frame(minWidth: 1000, maxWidth: 1000, minHeight:1000, maxHeight: 1000).padding().environmentObject(sim)
                 CanvasView().frame(minWidth: 1000, maxWidth: 1000, minHeight:1000, maxHeight: 1000).padding().environmentObject(sim)
             }
         }

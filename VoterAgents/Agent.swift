@@ -53,7 +53,6 @@ class Agent: Identifiable, Hashable, Equatable {
     func perceive() {
         let rng = GKRandomDistribution(randomSource: self.randomSource, lowestValue: 0, highestValue: 10000)
         var observed_bias: Double = 0.0
-        let ignoreNeighbors = false
         var flutter: Double = (Double(rng.nextUniform()) * globals.default_flutter_lt)
         flutter = (pow(10,2) * flutter).rounded() / pow(10,2)
         /* flip sign evenly */
@@ -78,8 +77,7 @@ class Agent: Identifiable, Hashable, Equatable {
         observed_bias /= 2 // equally weigh internal vs. external bias.
         
         /* if liar, bias to configured value */
-        if self.isLiar && eigenvalue >= globals.default_liar_gt_eigenvalue && self.neighborNodes.count >= Int(globals.default_liar_gt_k) {
-            //print("lying now.")
+        if self.isLiar {
             observed_bias = globals.default_liar_bias_to
         }
         /* round to same precision as start */

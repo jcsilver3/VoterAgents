@@ -12,25 +12,23 @@ struct ContentView: View {
     @StateObject var globals = Globals()
     
     @State private var runTask: Task<Void, Never>? = nil
-    @State private var selectedView: String? = "Metrics"
+    @State private var selectedView: String? = "Plots"
     var body: some View {
         
         NavigationSplitView {
             List(selection: $selectedView) {
-                NavigationLink(value: "Main", label: {Text("Main")})
-                NavigationLink(value: "Metrics", label: {Text("Metrics")})
-                NavigationLink(value: "Log", label: {Text("Log")})
+                
+                NavigationLink(value: "Plots", label: {Text("Plots")})
+                NavigationLink(value: "Viewport", label: {Text("Viewport")})
             }
             	
         } detail: {
             ScrollView {
                 switch selectedView {
-                case "Main":
+                case "Viewport":
                     MainView(sim: sim).padding()
-                case "Metrics":
+                case "Plots":
                     MetricsView(sim: sim).padding()
-                case "Log":
-                    LogView(sim: sim).padding()
                 default:
                     MainView(sim: sim).padding()
                 }

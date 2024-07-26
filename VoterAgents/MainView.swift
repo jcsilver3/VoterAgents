@@ -9,7 +9,6 @@ import Foundation
 import SwiftUI
 
 struct MainView: View {
-    //@State private var isEditing = false
     @ObservedObject var sim: Simulation
     @State private var runTask: Task<Void, Never>? = nil
     var body: some View {

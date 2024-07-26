@@ -123,16 +123,16 @@ struct MetricsView: View {
                         Text("EignenValue Distribution:").frame(minWidth: labelWidthMin, maxWidth: labelWidthMax)
                         let data = sim.graph.l_dist_data()
                         Chart(data) {
-                            PointMark (
+                            BarMark (
                                 x: .value("λ", $0.key),
                                 y: .value("n", $0.value)
                             )
                         }
                         .frame(minHeight: chartHeightMin)
-                        .chartXScale(type: .symmetricLog)
-                        .chartYScale(type: .symmetricLog)
+                        .chartXScale(type: .squareRoot)
                         .chartXAxisLabel("Eigenvalue")
                         .chartYAxisLabel("n")
+                        
                         
                     }.padding()
                 }
