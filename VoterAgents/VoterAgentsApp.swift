@@ -1,5 +1,5 @@
 //
-//  Agent.swift
+//  VoterAgentsApp.swift
 //  VoterAgents
 //  This file is part of the VoterAgents program, an Agent Based Model (ABM) simulation of misinformation perception.
 //  Copyright (C) 2024 John Silver (jcsilver3@gmail.com, jsilver9@gmu.edu)
